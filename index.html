@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Str8ts Puzzle</title>
+    <link rel="stylesheet" href="./src/style.css">
+    <script src="./game.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Str8ts Puzzle</h1>
+        
+        <div class="controls">
+            <div class="controls-left">
+                <div class="new-puzzle-group" onclick="newPuzzle()" title="Generate a new puzzle">
+                    <span class="new-puzzle-btn-label">New</span>
+                    <select class="difficulty-select" id="difficulty" onclick="event.stopPropagation()" onchange="">
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                        <option value="diabolic">Diabolic</option>
+                        <option value="cruel">Cruel</option>
+                        <option value="extreme">Extreme</option>
+                    </select>
+                    <label class="sym-label" onclick="event.stopPropagation()" title="Symmetric black tile pattern">
+                        <input type="checkbox" id="symmetricCheck" checked onclick="event.stopPropagation()">
+                        Sym
+                    </label>
+                </div>
+                <button id="clearButton" onclick="clearBoard()">Reset</button>
+                <button id="primaryActionButton" onclick="handlePrimaryAction()">Check</button>
+            </div>
+            <div class="controls-right">
+                <div class="mode-toggle" id="modeToggle" role="group" aria-label="Mode toggle">
+                    <button id="puzzleModeBtn" class="mode-btn active" onclick="setMode('puzzle')">Puzzle Mode</button>
+                    <button id="solverModeBtn" class="mode-btn" onclick="setMode('solver')">Solver Mode</button>
+                    <button id="creatorModeBtn" class="mode-btn" onclick="setMode('creator')">Creator Mode</button>
+                </div>
+            </div>
+        </div>
+        <div id="hintDescription" class="hint-description" aria-live="polite"></div>
+        <div id="creatorPanel" class="creator-panel" style="display:none;">
+            <input id="creatorBoardInput" class="creator-board-input" type="text" spellcheck="false" maxlength="81" autocomplete="off">
+            <div id="creatorValidation" class="creator-validation" aria-live="polite"></div>
+        </div>
+
+        <div class="game-area">
+            <div class="grid" id="puzzle-grid"></div>  <!-- filled by createGrid() -->
+            <div class="numpad" id="numpad">
+                <div class="numpad-btn" onclick="handleNumpadInput(1)">1</div>
+                <div class="numpad-btn" onclick="handleNumpadInput(2)">2</div>
+                <div class="numpad-btn" onclick="handleNumpadInput(3)">3</div>
+                <div class="numpad-btn" onclick="handleNumpadInput(4)">4</div>
+                <div class="numpad-btn" onclick="handleNumpadInput(5)">5</div>
+                <div class="numpad-btn" onclick="handleNumpadInput(6)">6</div>
+                <div class="numpad-btn" onclick="handleNumpadInput(7)">7</div>
+                <div class="numpad-btn" onclick="handleNumpadInput(8)">8</div>
+                <div class="numpad-btn" onclick="handleNumpadInput(9)">9</div>
+                <div class="numpad-controls">
+                    <button class="numpad-btn control" onclick="handleNumpadInput('clear')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
+                            <line x1="18" y1="9" x2="12" y2="15"/>
+                            <line x1="12" y1="9" x2="18" y2="15"/>
+                        </svg>
+                    </button>
+                    <button class="numpad-btn control" onclick="undoLastMove()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 7v6h6"/>
+                            <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
+                        </svg>
+                    </button>
+                    <button id="notesButton" class="numpad-btn control" onclick="toggleNotes()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+            <div class="loading-box">
+                <div class="loading-spinner"></div>
+                <div id="loadingMessage">Generating puzzle…</div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="successModal">
+            <div class="modal">
+                <h3>Congratulations!</h3>
+                <p>You've solved the puzzle!</p>
+                <div class="modal-buttons">
+                    <button class="confirm" onclick="closeSuccessModal()">OK</button>
+                </div>
+            </div>
+        </div>
+        <div class="modal-overlay" id="confirmModal">
+            <div class="modal">
+                <h3 id="modalMessage"></h3>
+                <div class="modal-buttons">
+                    <button class="cancel" onclick="closeModal()">Cancel</button>
+                    <button class="confirm" id="modalConfirm">Confirm</button>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="info-sections">
+            <details class="info-section">
+                <summary>Rules</summary>
+                <p>1. Fill the white cells with numbers 1-9, ensuring each number appears once in each row and column.</p>
+                <p>2. Numbers in each white cell compartment must form a straight (consecutive sequence) in any order.</p>
+                <p>3. Black cells with numbers block that digit from appearing in that row and column.</p>
+            </details>
+            <details class="info-section">
+                <summary>Controls</summary>
+                <p>1. Simply select a tile you want to edit with the mouse. You can also move your selection with the arrow keys.</p>
+                <p>2. Enter values via keyboard or by clicking on the numpad. By pressing the note icon or <em>N</em> you can also switch to note mode to write down multiple possible candidates.</p>
+                <p>3. The solver mode can give and apply hints for your current puzzle state if you are stuck. The creator mode allows you to build your own puzzle and provides a compact board representation for importing and exporting levels.</p>
+            </details>
+            <details class="info-section">
+                <summary>Legal Disclaimer</summary>
+                <p>This project is an independent open source website for the puzzle game Str8ts, developed purely for educational and recreational purposes. Str8ts is a registered trademark of Syndicated Puzzles Inc. All rights to the name, branding, and associated intellectual property belong to them. The author of this project is not affiliated, associated, authorized, endorsed by, or in any way officially connected with Syndicated Puzzles Inc., or any of its subsidiaries or affiliates.</p>
+            </details>
+        </div>
+
+        <div class="footer">
+            Made by <a href="https://github.com/PhoenixSmaug" target="_blank">Mia Müßig</a>
+            <a href="https://github.com/PhoenixSmaug/str8ts-web" target="_blank" aria-label="GitHub repository" class="footer-github">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+</body>
+</html>

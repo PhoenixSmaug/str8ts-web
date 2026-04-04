@@ -1,0 +1,11 @@
+# Node / Vite
+node_modules/
+dist/
+
+# Rust build output
+str8ts-solver/target/
+
+# Editor / OS
+.DS_Store
+.vscode/
+*.swp

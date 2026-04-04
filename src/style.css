@@ -1,0 +1,689 @@
+/* Loading overlay */
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.loading-box {
+    background: white;
+    border-radius: 10px;
+    padding: 32px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    font-size: 1rem;
+    color: #333;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e0e0e0;
+    border-top-color: #2196f3;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* CSS Variables */
+:root {
+    --cell-size: min(9vw, 60px);
+    --border-color: #333;
+    --black-cell: #222;
+    --highlight-color: #e3f2fd;
+    --error-color: #ffebee;
+    --correct-color: #e3f2fd;
+}
+
+/* Base Styles */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    background: #f5f5f5;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+/* Container and Layout */
+.container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    max-width: 800px;
+    width: 100%;
+}
+
+.game-area {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+/* Controls Section */
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.controls-left,
+.controls-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.controls-left #primaryActionButton.solver-action-width {
+    /* Removed fixed width to avoid artificially large Hint button; kept selector
+       for backward compatibility in case it's needed later. */
+    text-align: center;
+}
+
+.controls-left {
+    justify-content: flex-start;
+}
+
+.controls-right {
+    margin-left: auto;
+}
+
+.mode-toggle {
+    display: inline-flex;
+    border: 1px solid #2196f3;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.mode-btn {
+    border-radius: 0;
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 7px 14px;
+}
+
+.mode-btn:hover {
+    background: #bbdefb;
+}
+
+.mode-btn.active {
+    background: #2196f3;
+    color: white;
+}
+
+.icon-control {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e3f2fd;
+    border: 1px solid #2196f3;
+    color: #333;
+}
+
+.icon-control:hover {
+    background: #bbdefb;
+}
+
+#primaryActionButton:disabled {
+    background: #bdbdbd;
+    cursor: not-allowed;
+}
+
+.difficulty-select {
+    padding: 8px 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* Compound "Generate New Puzzle" button group */
+.new-puzzle-group {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 0;
+    background: #2196f3;
+    border-radius: 4px;
+    cursor: pointer;
+    /* No explicit height: match regular buttons via the same padding */
+    transition: background 0.2s;
+    border: none;
+}
+
+.new-puzzle-group:hover {
+    background: #1976d2;
+}
+
+.new-puzzle-group .difficulty-select {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    color: white;
+    font-size: 14px;
+    padding: 0 4px;
+    cursor: pointer;
+    outline: none;
+    align-self: center;
+    text-align: center;
+}
+
+.new-puzzle-group .difficulty-select option {
+    background: white;
+    color: #333;
+}
+
+.sym-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: white;
+    font-size: 13px;
+    padding: 8px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    border-left: 1px solid rgba(255,255,255,0.3);
+}
+
+.sym-label input[type="checkbox"] {
+    margin: 0;
+    cursor: pointer;
+    accent-color: white;
+    width: 13px;
+    height: 13px;
+}
+
+.new-puzzle-btn-label {
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 8px 8px 12px;
+    white-space: nowrap;
+    user-select: none;
+    align-self: center;
+    border-right: 1px solid rgba(255,255,255,0.3);
+}
+
+button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background: #2196f3;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+button:hover {
+    background: #1976d2;
+}
+
+/* Grid Styles */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(9, var(--cell-size));
+    grid-template-rows: repeat(9, var(--cell-size));
+    gap: 1px;
+    background: var(--border-color);
+    border: 2px solid var(--border-color);
+}
+
+.cell {
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(var(--cell-size) * 0.5);
+    position: relative;
+    user-select: none;
+}
+
+.cell.black {
+    background: var(--black-cell);
+    color: white;
+}
+
+.cell.hint {
+    font-weight: bold;
+    color: #333;
+}
+
+.cell.selected {
+    background: var(--highlight-color);
+}
+
+.cell.black.selected {
+    background: var(--black-cell);
+}
+
+.cell.selected-strong {
+    box-shadow: inset 0 0 0 2px #2196f3;
+}
+
+.cell.black.selected-strong {
+    box-shadow: inset 0 0 0 2px #90caf9;
+}
+
+.cell.error {
+    background: var(--error-color);
+}
+
+.cell.hint-affected {
+    background: #fff7cc;
+}
+
+.cell.correct {
+    background: var(--correct-color);
+}
+
+.wrong-number {
+    color: #ff4c4c;
+}
+
+/* Notes Styles */
+.notes {
+    position: absolute;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    font-size: calc(var(--cell-size) * 0.2);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    color: #666;
+}
+
+.notes span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.notes span.hint-removed {
+    color: #d32f2f;
+    font-weight: 700;
+}
+
+.hint-description {
+    min-height: 22px;
+    margin-top: 8px;
+    margin-bottom: 12px;
+    text-align: center;
+    color: #555;
+    font-size: 14px;
+}
+
+.creator-panel {
+    margin-top: 8px;
+    margin-bottom: 12px;
+}
+
+.creator-board-input {
+    width: 100%;
+    height: 36px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 13px;
+    border: 1px solid #bbb;
+    border-radius: 6px;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+.creator-validation {
+    margin-top: 6px;
+    min-height: 20px;
+    font-size: 13px;
+    color: #555;
+}
+
+.creator-validation.valid {
+    color: #2e7d32;
+}
+
+.creator-validation.warn {
+    color: #ef6c00;
+}
+
+.creator-validation.error {
+    color: #c62828;
+}
+
+.solver-settings-options {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.solver-settings-options label {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+/* Numpad Styles */
+.numpad {
+    display: grid;
+    grid-template-columns: repeat(3, var(--cell-size));
+    grid-template-rows: repeat(3, var(--cell-size));
+    gap: 5px;
+}
+
+.numpad-btn {
+    background: #e3f2fd;
+    border: 1px solid #2196f3;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: calc(var(--cell-size) * 0.5);
+    cursor: pointer;
+    transition: background 0.2s;
+    width: var(--cell-size);
+    height: var(--cell-size);
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.numpad-btn:hover {
+    background: #bbdefb;
+}
+
+.numpad-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+}
+
+.numpad-btn.control {
+    background: #e3f2fd;
+    border: 1px solid #2196f3;
+    border-radius: 4px;
+    color: #333;
+}
+
+.numpad-btn.control:hover {
+    background: #bbdefb;
+}
+
+.numpad-btn.control.active {
+    background: #2196f3;
+    color: white;
+}
+
+.numpad-btn.control.notes-active {
+    background: #2196f3 !important;
+    color: white !important;
+}
+
+.numpad-btn.control svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.modal-buttons button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.modal-buttons .confirm {
+    background: #2196f3;
+    color: white;
+}
+
+.modal-buttons .cancel {
+    background: #9e9e9e;
+    color: white;
+}
+
+.confetti {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    background-color: #f00;
+    pointer-events: none;
+    opacity: 0;
+    will-change: transform, opacity;
+    animation: confettiFall 3s ease-in forwards;
+}
+
+@keyframes confettiFall {
+    0% {
+        transform: translate(0, -20vh) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--drift-x, 0px), 100vh) rotate(var(--spin, 720deg));
+        opacity: 0;
+    }
+}
+
+/* Additional Sections */
+.info-sections {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.info-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.info-section summary {
+    padding: 14px 18px;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #333;
+    cursor: pointer;
+    user-select: none;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-section summary::-webkit-details-marker {
+    display: none;
+}
+
+.info-section summary::before {
+    content: '▸';
+    display: inline-block;
+    font-size: 0.8rem;
+    color: #666;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.info-section[open] summary::before {
+    transform: rotate(90deg);
+}
+
+.info-section summary:hover {
+    background: #eef0f2;
+}
+
+.info-section p {
+    margin: 0;
+    padding: 0 18px 14px;
+    color: #555;
+    font-size: 0.92rem;
+    line-height: 1.55;
+}
+
+.info-section p + p {
+    padding-top: 6px;
+}
+
+.footer {
+    text-align: center;
+    margin-top: 20px;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.footer a {
+    color: #2196f3;
+    text-decoration: none;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+.footer-github {
+    color: #666;
+    display: flex;
+    align-items: center;
+}
+
+.footer-github:hover {
+    color: #333;
+    text-decoration: none;
+}
+
+/* Responsive Styles */
+@media (max-width: 600px) {
+    .container {
+        padding: 10px;
+    }
+
+    /* Controls: mode row on top, then generate, then reset/check */
+    .controls {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .controls-left,
+    .controls-right {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .controls-right {
+        margin-left: 0;
+        order: -1;  /* mode toggle row first */
+    }
+
+    .mode-toggle {
+        flex: 1;
+    }
+
+    .mode-btn {
+        flex: 1;
+        padding: 7px 8px;
+    }
+
+    .new-puzzle-group {
+        flex: 1;
+        justify-content: center;
+    }
+
+    #clearButton,
+    #primaryActionButton {
+        flex: 1;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    .numpad {
+        grid-template-columns: repeat(6, minmax(50px, 1fr));
+        grid-template-rows: repeat(2, var(--cell-size));
+    }
+
+    .numpad-btn,
+    .numpad-btn.control {
+        width: 100%;
+        height: var(--cell-size);
+    }
+
+    .numpad-btn:nth-child(-n+6) {
+        grid-row: 1;
+    }
+
+    .numpad-btn:nth-child(n+7):nth-child(-n+9) {
+        grid-row: 2;
+    }
+
+    .numpad-controls {
+        grid-row: 2;
+        grid-column: 4 / span 3;
+        margin: 0;
+    }
+
+    .numpad-controls .numpad-btn.control {
+        width: 100%;
+    }
+}
