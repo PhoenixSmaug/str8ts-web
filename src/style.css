@@ -686,4 +686,8 @@ button:hover {
     .numpad-controls .numpad-btn.control {
         width: 100%;
     }
+
+    .info-sections {
+        margin-top: 48px;
+    }
 }

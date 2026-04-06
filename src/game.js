@@ -2188,14 +2188,14 @@ function loadPuzzleState() {
 // Add confetti function
 function createConfetti() {
     const viewportArea = window.innerWidth * window.innerHeight;
-    const pieceCount = Math.max(120, Math.min(700, Math.floor(viewportArea / 3500)));
+    const pieceCount = Math.max(250, Math.min(1400, Math.floor(viewportArea / 1800)));
     const colors = ['#2196f3', '#4caf50', '#ff9800', '#e91e63', '#9c27b0'];
     const fragment = document.createDocumentFragment();
 
     for (let i = 0; i < pieceCount; i++) {
         const confetti = document.createElement('div');
         confetti.className = 'confetti';
-        const size = 4 + Math.random() * 10;
+        const size = 3 + Math.random() * 8;
         confetti.style.left = Math.random() * window.innerWidth + 'px';
         confetti.style.width = `${size}px`;
         confetti.style.height = `${size * (0.6 + Math.random() * 1.2)}px`;
@@ -2203,7 +2203,7 @@ function createConfetti() {
         confetti.style.setProperty('--drift-x', `${-120 + Math.random() * 240}px`);
         confetti.style.setProperty('--spin', `${360 + Math.random() * 1080}deg`);
         confetti.style.animationDuration = `${2 + Math.random() * 2.5}s`;
-        confetti.style.animationDelay = `${Math.random() * 0.35}s`;
+        confetti.style.animationDelay = `${Math.random() * 1.2}s`;
         fragment.appendChild(confetti);
         
         // Clean up confetti after animation

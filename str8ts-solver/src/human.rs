@@ -13,6 +13,10 @@ pub const H_YWING: i32 = 80;
 pub const H_BINARY_GUESS: i32 = 90;
 pub const H_UNSOLVABLE: i32 = 100;
 
+fn sure_candidates_hardness(k: usize) -> i32 {
+    5 + (k as i32 - 1) * 3
+}
+
 fn stranded_hardness(k: usize) -> i32 {
     10 + (k as i32 - 1) * 2
 }
@@ -991,6 +995,7 @@ fn use_locked_compartments(s: &mut HumanStr8ts) -> i32 {
 
 fn use_sure_candidates(s: &mut HumanStr8ts) -> i32 {
     let mut effective = false;
+    let mut max_k = 1usize;
 
     for r in 0..N {
         let row_comp_indices: Vec<usize> = s
@@ -1005,6 +1010,7 @@ fn use_sure_candidates(s: &mut HumanStr8ts) -> i32 {
             let comp = &s.row_compartments[idx];
             let ranges = get_compartment_ranges(s, comp);
             let sure = get_sure_candidates(&ranges, comp.len());
+            let comp_size = comp.len();
             for c in 0..N {
                 if !s.is_black[r][c] {
                     let comp_idx = s.cell_to_row_compartment[r][c];
@@ -1013,6 +1019,9 @@ fn use_sure_candidates(s: &mut HumanStr8ts) -> i32 {
                             if mask_has(s.candidates[r][c], n) {
                                 rem_candidate(s, r, c, n);
                                 effective = true;
+                                if comp_size > max_k {
+                                    max_k = comp_size;
+                                }
                             }
                         }
                     }
@@ -1034,6 +1043,7 @@ fn use_sure_candidates(s: &mut HumanStr8ts) -> i32 {
             let comp = &s.col_compartments[idx];
             let ranges = get_compartment_ranges(s, comp);
             let sure = get_sure_candidates(&ranges, comp.len());
+            let comp_size = comp.len();
             for r in 0..N {
                 if !s.is_black[r][c] {
                     let comp_idx = s.cell_to_col_compartment[r][c];
@@ -1042,6 +1052,9 @@ fn use_sure_candidates(s: &mut HumanStr8ts) -> i32 {
                             if mask_has(s.candidates[r][c], n) {
                                 rem_candidate(s, r, c, n);
                                 effective = true;
+                                if comp_size > max_k {
+                                    max_k = comp_size;
+                                }
                             }
                         }
                     }
@@ -1051,7 +1064,7 @@ fn use_sure_candidates(s: &mut HumanStr8ts) -> i32 {
     }
 
     if effective {
-        H_SURE_CANDIDATES
+        sure_candidates_hardness(max_k)
     } else {
         0
     }
