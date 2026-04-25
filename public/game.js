@@ -301,7 +301,7 @@ function selectCell(cell) {
     if (currentMode === 'solver') {
         return;
     }
-    if (cell.classList.contains('hint') || cell.classList.contains('black')) {
+    if (cell.classList.contains('black')) {
         return;
     }
 
@@ -403,6 +403,10 @@ function handleKeyPress(e) {
 
     const previousValue = puzzle[row][col];
     const previousNotes = new Set(notes[row][col]);
+    // Don't allow modifying hint tiles
+    if (selectedCell.classList.contains('hint')) {
+        return;
+    }
 
     if (e.key >= '1' && e.key <= '9') {
         // disallow notes for already filled tiles
